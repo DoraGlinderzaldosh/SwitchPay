@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++20 -Wall -Wextra -Werror -g -O1
+CXXFLAGS := -std=c++23 -Wall -Wextra -Werror -g -O1
 SANITIZERS := -fsanitize=address,undefined
 
 BUILD_DIR := build
@@ -19,12 +19,12 @@ debug: | $(BUILD_DIR)
 		-o $(BUILD_DIR)/debug
 
 release: | $(BUILD_DIR)
-	$(CXX) -std=c++20 -Wall -Wextra -O2 \
+	$(CXX) -std=c++23 -Wall -Wextra -O2 \
 		$(COMMON_DIR)/main.cpp \
 		-o $(BUILD_DIR)/release
 
 tsan: | $(BUILD_DIR)
-	$(CXX) -std=c++20 -Wall -Wextra -g -O1 \
+	$(CXX) -std=c++23 -Wall -Wextra -g -O1 \
 		-fsanitize=thread \
 		$(COMMON_DIR)/main.cpp \
 		-o $(BUILD_DIR)/tsan
