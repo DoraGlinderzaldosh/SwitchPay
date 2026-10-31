@@ -174,4 +174,96 @@ namespace {
             return value;
         }
     };
+
+    bool validType(std::uint16_t type) {
+        return type == 0x0100 || type == 0x0110 ||
+            type == 0x0400 || type == 0x0410;
+    }
+}
+
+std::expected<Bytes, std::string> 
+encode(const Message& msg) {
+    if(!validType(msg.type))
+    return std::unexpected("Unsupported message type");
+
+    std::uint8_t bitmap = 0;
+
+    if(msg.cardNumber) {
+        if(msg.cardNumber->size() < 12 || msg.cardNumber->size() > 19 || !allDigits(*msg.cardNumber))
+        return std::unexpected("Invalid card number");
+
+        bitmap |= fieldBit(0);
+    }
+
+    if(msg.amount) {
+        if(*msg.amount > MAX_AMOUNT)
+        return std::unexpected("Amount exceeds 56-bit limit");
+
+        if(!msg.amountScale || *msg.amountScale > 2) 
+        return std::unexpected("Amount scale must be 0, 1, or 2");
+
+        bitmap |= fieldBit(1);
+    } else if(msg.amountScale) {
+        return std::unexpected("Amount scale without amount");
+    }
+
+    if(msg.stan) 
+    bitmap |= fieldBit(2);
+
+    if(msg.timestamp)
+    bitmap |= fieldBit(3);
+
+    if(msg.key) {
+        if(msg.key->size() > 64)
+        return std::unexpected("Idempotency key too long");
+        bitmap |= fieldBit(4);
+    }
+
+    if(msg.response) {
+        if(msg.response->size() != 2 || !allDigits(*msg.response))
+        return std::unexpected("Response code must be two ASCII digits");
+        bitmap |= fieldBit(5); 
+    }
+
+    if(msg.ostan)
+    bitmap |= fieldBit(6);
+
+    if(msg.terminalId) {
+        if(msg.terminalId->size() > 16)
+        return std::unexpected("Terminal Id too long");
+
+        bitmap |= fieldBit(7);
+    }
+
+    Bytes body;
+    body.reserve(64);
+
+    writeU16(body, msg.type);
+    writeU8(body, bitmap);
+
+    if(msg.cardNumber)
+    writeString(body, *msg.cardNumber);
+    if(msg.amount){
+        writeU8(body, *msg.amountScale);
+        writeU56(body, *msg.amount);
+    }
+    if(msg.stan)
+    writeU32(body, *msg.stan);
+    if(msg.timestamp)
+    writeU64(body, *msg.timestamp);
+    if(msg.key)
+    writeString(body, *msg.key);
+    if(msg.response) {
+        body.push_back(static_cast<std::uint8_t>((*msg.response)[0]));
+        body.push_back(static_cast<uint8_t>((*msg.response)[1]));
+    }
+    if(msg.ostan)
+    writeU32(body, *msg.ostan);
+    if(msg.terminalId)
+    writeString(body, *msg.terminalId);
+
+    if(body.empty() || body.size() > MAX_BODY_SIZE)
+    return std::unexpected("Invalid body size");
+
+    return body;
 }
