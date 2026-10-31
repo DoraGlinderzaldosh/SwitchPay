@@ -9,13 +9,14 @@ struct Message {
     std::uint16_t type{};
 
     std::optional<std::string> cardNumber;
-    std::optional<std::uint32_t> amount;
-    std::optional<std::string> stan;
-    std::optional<std::string> timestamp;
+    std::optional<std::uint64_t> amount;
+    std::optional<std::uint32_t> stan;
+    std::optional<std::uint64_t> timestamp;
     std::optional<std::string> key;
-    std::optional<std::uint16_t> response;
-    std::optional<std::string> ostan;
+    std::optional<std::string> response;
+    std::optional<std::uint32_t> ostan;
     std::optional<std::string> terminalId;
+    std::optional<std::uint8_t> amountScale;
 
     bool operator==(const Message&) const = default;
 };
