@@ -551,5 +551,6 @@ int main() {
 
     testTruncateValidMessageAtEveryPosition();
     testAllBitmapBitsSetWithoutPayload();
+    std::cout << "All tests have passed\n";
     return 0;
 }
