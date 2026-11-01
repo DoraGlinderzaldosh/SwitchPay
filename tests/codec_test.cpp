@@ -100,8 +100,6 @@ void testRoundTripAmountScales() {
         assert(decoded.has_value());
 
         assert(*decoded == original);
-
-        // Explicitly verify that neither value changed.
         assert(decoded->amount == original.amount);
         assert(decoded->amountScale == original.amountScale);
     }
@@ -121,7 +119,6 @@ check the smallest and the largest values allowed by the protocol
 - Body size: Minimum valid body and maximum valid body, where the content is valid
 */
 
-
 void testCardNumberBoundaries() {
     Message minimum;
     minimum.type = 0x0100;
@@ -135,7 +132,6 @@ void testCardNumberBoundaries() {
 
     checkEncodedDecoded(&maximum);
 }
-
 
 void testAmountBoundaries() {
     Message zero;
@@ -152,7 +148,6 @@ void testAmountBoundaries() {
 
     checkEncodedDecoded(&maximum);
 }
-
 
 void testStanBoundaries() {
     Message minimum;
@@ -182,7 +177,6 @@ void testOriginalStanBoundaries() {
     checkEncodedDecoded(&maximum);
 }
 
-
 void testTimestampBoundaries() {
     Message minimum;
     minimum.type = 0x0100;
@@ -196,7 +190,6 @@ void testTimestampBoundaries() {
 
     checkEncodedDecoded(&maximum);
 }
-
 
 void testKeyBoundaries() {
     Message empty;
@@ -489,6 +482,46 @@ void testInvalidFixedLengthFields() {
     expectDecodeError(unknownResponse);
 }
 
+void testTruncateValidMessageAtEveryPosition() {
+    Message original;
+    original.type = 0x0100;
+    original.cardNumber = "123456789012";
+    original.amount = 12550;
+    original.amountScale = 2;
+    original.stan = 1234;
+    original.timestamp = 1730000000000ULL;
+    original.key = "payment-key-001";
+    original.terminalId = "TERM0001";
+
+    auto encoded = encode(original);
+    assert(encoded.has_value());
+
+    const Bytes& validBody = *encoded;
+
+    for (std::size_t length = 0; length < validBody.size(); ++length) {
+        Bytes truncated(
+            validBody.begin(),
+            validBody.begin() + length
+        );
+
+        expectDecodeError(truncated);
+    }
+
+    // The complete body must still decode successfully.
+    auto decoded = decode(validBody);
+    assert(decoded.has_value());
+    assert(*decoded == original);
+}
+
+
+void testAllBitmapBitsSetWithoutPayload() {
+    Bytes body;
+
+    appendU16(body, 0x0100);
+    body.push_back(0xFF);
+
+    expectDecodeError(body);
+}
 
 int main() {
     testRoundTripAllFields();
@@ -516,5 +549,7 @@ int main() {
     testInvalidFixedLengthFields();
     std::cout << "All malformed-input tests have passed\n";
 
+    testTruncateValidMessageAtEveryPosition();
+    testAllBitmapBitsSetWithoutPayload();
     return 0;
 }

@@ -126,5 +126,5 @@ If a frame is invalid, **close the connection**. It cannot be resynchronized.
 ## 8. To Be Addressed Later
 
 - **Tampering:** what if someone modifies the frame (e.g. swaps in a different PAN)? Needs integrity protection (e.g. a MAC or TLS).
-- Exact amount byte layout and timestamp unit.
 - Idempotency handling: storage, expiry, and what to return on a duplicate key.
+- IWhich fields are required for which requests ?
