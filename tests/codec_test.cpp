@@ -104,10 +104,166 @@ void testRoundTripAmountScales() {
     }
 }
 
+/*
+Valid boundary value tests
+check the smallest and the largest values allowed by the protocol
+- card number: 12 digts, 19 digits
+- amount: 0, maximum 56 bit value 
+- STAN: 0, UINT32_MAX
+- timestamp: 0, UINT64_MAX
+- Idempotency Key: empty, 1 byte, 64 bytes
+- Response code: every permitted response code
+- Original STAN: 0, UINT32_MAX
+- Terminal ID: Empty, 1 byte, 16 bytes
+- Body size: Minimum valid body and maximum valid body, where the content is valid
+*/
+
+
+void testCardNumberBoundaries() {
+    Message minimum;
+    minimum.type = 0x0100;
+    minimum.cardNumber = "123456789012";
+
+    checkEncodedDecoded(&minimum);
+
+    Message maximum;
+    maximum.type = 0x0100;
+    maximum.cardNumber = "1234567890123456789";
+
+    checkEncodedDecoded(&maximum);
+}
+
+
+void testAmountBoundaries() {
+    Message zero;
+    zero.type = 0x0100;
+    zero.amount = 0;
+    zero.amountScale = 0;
+
+    checkEncodedDecoded(&zero);
+
+    Message maximum;
+    maximum.type = 0x0100;
+    maximum.amount = (1ULL << 56) - 1;
+    maximum.amountScale = 2;
+
+    checkEncodedDecoded(&maximum);
+}
+
+
+void testStanBoundaries() {
+    Message minimum;
+    minimum.type = 0x0100;
+    minimum.stan = 0;
+
+    checkEncodedDecoded(&minimum);
+
+    Message maximum;
+    maximum.type = 0x0100;
+    maximum.stan = UINT32_MAX;
+
+    checkEncodedDecoded(&maximum);
+}
+
+void testOriginalStanBoundaries() {
+    Message minimum;
+    minimum.type = 0x0400;
+    minimum.ostan = 0;
+
+    checkEncodedDecoded(&minimum);
+
+    Message maximum;
+    maximum.type = 0x0400;
+    maximum.ostan = UINT32_MAX;
+
+    checkEncodedDecoded(&maximum);
+}
+
+
+void testTimestampBoundaries() {
+    Message minimum;
+    minimum.type = 0x0100;
+    minimum.timestamp = 0;
+
+    checkEncodedDecoded(&minimum);
+
+    Message maximum;
+    maximum.type = 0x0100;
+    maximum.timestamp = UINT64_MAX;
+
+    checkEncodedDecoded(&maximum);
+}
+
+
+void testKeyBoundaries() {
+    Message empty;
+    empty.type = 0x0100;
+    empty.key = "";
+
+    checkEncodedDecoded(&empty);
+
+    Message minimum;
+    minimum.type = 0x0100;
+    minimum.key = "K";
+
+    checkEncodedDecoded(&minimum);
+
+    Message maximum;
+    maximum.type = 0x0100;
+    maximum.key = std::string(64, 'K');
+
+    checkEncodedDecoded(&maximum);
+}
+
+void testAllValidResponseCodes() {
+    const std::string codes[] = {
+        "00", "05", "12", "13", "30",
+        "51", "54", "57", "91", "96"
+    };
+
+    for (const std::string& code : codes) {
+        Message original;
+        original.type = 0x0110;
+        original.response = code;
+
+        checkEncodedDecoded(&original);
+    }
+}
+
+void testTerminalIdBoundaries() {
+    Message empty;
+    empty.type = 0x0100;
+    empty.terminalId = "";
+
+    checkEncodedDecoded(&empty);
+
+    Message minimum;
+    minimum.type = 0x0100;
+    minimum.terminalId = "T";
+
+    checkEncodedDecoded(&minimum);
+
+    Message maximum;
+    maximum.type = 0x0100;
+    maximum.terminalId = std::string(16, 'T');
+
+    checkEncodedDecoded(&maximum);
+}
+
 int main() {
     testRoundTripAllFields();
     testRoundTripExactlyTwoFields();
     testRoundTripAllMessageTypes();
-
+    testRoundTripAmountScales();
     std::cout << "All round trip tests have passed\n";
+
+    testCardNumberBoundaries();
+    testAmountBoundaries();
+    testStanBoundaries();
+    testOriginalStanBoundaries();
+    testTimestampBoundaries();
+    testKeyBoundaries();
+    testAllValidResponseCodes();
+    testTerminalIdBoundaries();
+    std::cout << "All valid boundary value tests have passed\n";
 }
