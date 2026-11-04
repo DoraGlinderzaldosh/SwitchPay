@@ -43,5 +43,10 @@ $(BUILD_DIR)/codec_test: $(TEST_DIR)/codec_test.cpp \
 test-codec: $(BUILD_DIR)/codec_test
 	./$(BUILD_DIR)/codec_test
 
+test-frame-buffer:
+	mkdir -p build
+	$(CXX) $(CXXFLAGS) tests/frame_buffer_test.cpp common/frame_buffer.cpp -o build/frame_buffer_test
+	./build/frame_buffer_test
+
 clean:
 	rm -rf $(BUILD_DIR)
