@@ -1,52 +1,55 @@
 CXX := g++
 CXXFLAGS := -std=c++23 -Wall -Wextra -Werror -g -O1
+RELEASE_FLAGS := -std=c++23 -Wall -Wextra -O2
 SANITIZERS := -fsanitize=address,undefined
+TSAN_FLAGS := -fsanitize=thread
 
 BUILD_DIR := build
 COMMON_DIR := common
 TEST_DIR := tests
 
-.PHONY: all debug release tsan test-codec clean
+.PHONY: all debug release tsan test test-codec test-frame-buffer clean
 
 all: debug
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-debug: | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(SANITIZERS) \
-		-fno-omit-frame-pointer \
-		$(COMMON_DIR)/main.cpp \
-		-o $(BUILD_DIR)/debug
+$(BUILD_DIR)/debug: | $(BUILD_DIR)
 
-release: | $(BUILD_DIR)
-	$(CXX) -std=c++23 -Wall -Wextra -O2 \
-		$(COMMON_DIR)/main.cpp \
-		-o $(BUILD_DIR)/release
+$(BUILD_DIR)/release: $(COMMON_DIR)/main.cpp | $(BUILD_DIR)
+	$(CXX) $(RELEASE_FLAGS) $< -o $@
 
-tsan: | $(BUILD_DIR)
-	$(CXX) -std=c++23 -Wall -Wextra -g -O1 \
-		-fsanitize=thread \
-		$(COMMON_DIR)/main.cpp \
-		-o $(BUILD_DIR)/tsan
+$(BUILD_DIR)/tsan: $(COMMON_DIR)/main.cpp | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) $(TSAN_FLAGS) $< -o $@
 
 $(BUILD_DIR)/codec_test: $(TEST_DIR)/codec_test.cpp \
                          $(COMMON_DIR)/codec.cpp \
                          $(COMMON_DIR)/codec.hpp \
                          $(COMMON_DIR)/message.hpp | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(SANITIZERS) \
-		-fno-omit-frame-pointer \
-		$(TEST_DIR)/codec_test.cpp \
-		$(COMMON_DIR)/codec.cpp \
-		-o $(BUILD_DIR)/codec_test
+	$(CXX) $(CXXFLAGS) $(SANITIZERS) -fno-omit-frame-pointer \
+		$(TEST_DIR)/codec_test.cpp $(COMMON_DIR)/codec.cpp -o $@
+
+$(BUILD_DIR)/frame_buffer_test: $(TEST_DIR)/frame_buffer_test.cpp \
+                                $(COMMON_DIR)/frame_buffer.cpp \
+                                $(COMMON_DIR)/frame_buffer.hpp \
+                                $(COMMON_DIR)/codec.hpp | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) $(SANITIZERS) -fno-omit-frame-pointer \
+		$(TEST_DIR)/frame_buffer_test.cpp $(COMMON_DIR)/frame_buffer.cpp -o $@
+
+debug: test
+
+release: $(BUILD_DIR)/release
+
+tsan: $(BUILD_DIR)/tsan
+
+test: test-codec test-frame-buffer
 
 test-codec: $(BUILD_DIR)/codec_test
-	./$(BUILD_DIR)/codec_test
+	./$<
 
-test-frame-buffer:
-	mkdir -p build
-	$(CXX) $(CXXFLAGS) tests/frame_buffer_test.cpp common/frame_buffer.cpp -o build/frame_buffer_test
-	./build/frame_buffer_test
+test-frame-buffer: $(BUILD_DIR)/frame_buffer_test
+	./$<
 
 clean:
 	rm -rf $(BUILD_DIR)
