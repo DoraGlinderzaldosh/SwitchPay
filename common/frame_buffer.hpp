@@ -1,10 +1,10 @@
 #pragma once 
 #include "codec.hpp"
 
-constexpr std::size_t MAX_FRAME_SIZE = 1024;
-constexpr std::size_t MAX_BUFFER_SIZE = 2*(MAX_FRAME_SIZE+2);
+constexpr size_t MAX_FRAME_SIZE = 1024;
+constexpr size_t MAX_BUFFER_SIZE = 2*(MAX_FRAME_SIZE+2);
 
-using FrameResult = std::expected<std::optional<Bytes>, std::string>;
+using FrameResult = expected<optional<Bytes>, string>;
 
 class FrameBuffer {
     public:
@@ -17,10 +17,10 @@ class FrameBuffer {
 
     private:
     Bytes buffer__;
-    std::size_t readPos = 0;
+    size_t readPos = 0;
     bool failed_ = false;
-    std::string error_;
+    string error_;
 
     void compact();
-    void fail(const std::string& err);
+    void fail(const string& err);
 };

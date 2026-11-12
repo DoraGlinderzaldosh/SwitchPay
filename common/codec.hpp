@@ -6,10 +6,12 @@
 #include <expected>
 #include <string>
 
-using Bytes = std::vector<std::uint8_t>;
+using namespace std;
 
-std::expected<Bytes, std::string>
+using Bytes = vector<uint8_t>;
+
+expected<Bytes, string>
 encode(const Message& msg);
 
-std::expected<Message, std::string>
+expected<Message, string>
 decode(const Bytes& bytes);

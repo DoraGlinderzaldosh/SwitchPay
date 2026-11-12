@@ -1,6 +1,6 @@
 #include "frame_buffer.hpp"
 
-void FrameBuffer::fail(const  std::string& error) {
+void FrameBuffer::fail(const  string& error) {
     failed_ = true;
     error_ = error;
 }
@@ -28,7 +28,7 @@ void FrameBuffer::append(const Bytes& bytes) {
     if(failed_ || bytes.empty()) return;
 
     compact();
-    const std::size_t unread = buffer__.size()-readPos;
+    const size_t unread = buffer__.size()-readPos;
 
     if(bytes.size() > MAX_BUFFER_SIZE-unread) {
         fail("Frame Buffer Capacity Exceeded");
@@ -39,24 +39,24 @@ void FrameBuffer::append(const Bytes& bytes) {
 }
 
 FrameResult FrameBuffer::next() {
-    if(failed_) return std::unexpected(error_);
+    if(failed_) return unexpected(error_);
 
-    const std::size_t available = buffer__.size()-readPos;
+    const size_t available = buffer__.size()-readPos;
     if(available < 2) 
-    return std::optional<Bytes>{};
+    return optional<Bytes>{};
 
-    const std::uint16_t length = (static_cast<uint16_t>(buffer__[readPos]) << 8) |
+    const uint16_t length = (static_cast<uint16_t>(buffer__[readPos]) << 8) |
                                   static_cast<uint16_t>(buffer__[readPos+1]);
 
     if(length == 0 || length > MAX_FRAME_SIZE) {
         fail("Invalid frame length");
-        return std::unexpected(error_);
+        return unexpected(error_);
     }
 
-    const std::size_t frameSize = 2+length;
+    const size_t frameSize = 2+length;
 
     if(available < frameSize)
-    return std::optional<Bytes>{};
+    return optional<Bytes>{};
 
     const auto bodyBegin = buffer__.begin() + readPos+2;
     const auto bodyEnd = bodyBegin+length;
@@ -66,7 +66,7 @@ FrameResult FrameBuffer::next() {
 
     compact();
 
-    return std::optional<Bytes>{std::move(frame)};
+    return optional<Bytes>{move(frame)};
 }
 
 bool FrameBuffer::hasPendingData() const {

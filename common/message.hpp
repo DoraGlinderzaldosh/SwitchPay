@@ -6,17 +6,17 @@
 #include <string>
 
 struct Message {
-    std::uint16_t type{};
+    uint16_t type{};
 
-    std::optional<std::string> cardNumber;
-    std::optional<std::uint64_t> amount;
-    std::optional<std::uint32_t> stan;
-    std::optional<std::uint64_t> timestamp;
-    std::optional<std::string> key;
-    std::optional<std::string> response;
-    std::optional<std::uint32_t> ostan;
-    std::optional<std::string> terminalId;
-    std::optional<std::uint8_t> amountScale;
+    optional<string> cardNumber;
+    optional<uint64_t> amount;
+    optional<uint32_t> stan;
+    optional<uint64_t> timestamp;
+    optional<string> key;
+    optional<string> response;
+    optional<uint32_t> ostan;
+    optional<string> terminalId;
+    optional<uint8_t> amountScale;
 
     bool operator==(const Message&) const = default;
 };

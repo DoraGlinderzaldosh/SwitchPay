@@ -62,7 +62,7 @@ void testRoundTripOneField() {
 }
 
 void testRoundTripAllMessageTypes() {
-    const std::uint16_t types[] = {
+    const uint16_t types[] = {
         0x0100, //Authorization request
         0x0110, //Authorization Response
         0x0400, //Reversal request
@@ -70,7 +70,7 @@ void testRoundTripAllMessageTypes() {
         //0x0210, //random code --- failing as it should
     };
 
-    for(std::uint16_t type: types) {
+    for(uint16_t type: types) {
         Message original;
 
         original.type = type;
@@ -84,9 +84,9 @@ void testRoundTripAllMessageTypes() {
 }
 
 void testRoundTripAmountScales() {
-    const std::uint8_t scales[] = {0, 1, 2};
+    const uint8_t scales[] = {0, 1, 2};
 
-    for (std::uint8_t scale : scales) {
+    for (uint8_t scale : scales) {
         Message original;
 
         original.type = 0x0100;
@@ -206,18 +206,18 @@ void testKeyBoundaries() {
 
     Message maximum;
     maximum.type = 0x0100;
-    maximum.key = std::string(64, 'K');
+    maximum.key = string(64, 'K');
 
     checkEncodedDecoded(&maximum);
 }
 
 void testAllValidResponseCodes() {
-    const std::string codes[] = {
+    const string codes[] = {
         "00", "05", "12", "13", "30",
         "51", "54", "57", "91", "96"
     };
 
-    for (const std::string& code : codes) {
+    for (const string& code : codes) {
         Message original;
         original.type = 0x0110;
         original.response = code;
@@ -241,7 +241,7 @@ void testTerminalIdBoundaries() {
 
     Message maximum;
     maximum.type = 0x0100;
-    maximum.terminalId = std::string(16, 'T');
+    maximum.terminalId = string(16, 'T');
 
     checkEncodedDecoded(&maximum);
 }
@@ -260,15 +260,15 @@ void testMinimumAndMaximumBodySizes() {
 
     Message maximum;
     maximum.type = 0x0100;
-    maximum.cardNumber = std::string(19, '1');
+    maximum.cardNumber = string(19, '1');
     maximum.amount = (1ULL << 56) - 1;
     maximum.amountScale = 2;
     maximum.stan = UINT32_MAX;
     maximum.timestamp = UINT64_MAX;
-    maximum.key = std::string(64, 'K');
+    maximum.key = string(64, 'K');
     maximum.response = "00";
     maximum.ostan = UINT32_MAX;
-    maximum.terminalId = std::string(16, 'T');
+    maximum.terminalId = string(16, 'T');
 
     auto maxEncoded = encode(maximum);
     assert(maxEncoded.has_value());
@@ -287,15 +287,15 @@ void expectDecodeError(const Bytes& body) {
     auto result = decode(body);
 
     if (result.has_value()) {
-        std::cerr << "Unexpectedly accepted input ("
+        cerr << "Unexpectedly accepted input ("
                   << body.size() << " bytes): ";
 
-        for (std::uint8_t byte : body) {
-            std::cerr << std::hex
+        for (uint8_t byte : body) {
+            cerr << hex
                       << static_cast<unsigned>(byte) << ' ';
         }
 
-        std::cerr << std::dec << '\n';
+        cerr << dec << '\n';
         assert(false && "Expected decode() to return an error");
     }
 }
@@ -304,17 +304,17 @@ void expectEncodeError(const Message& msg) {
     auto result = encode(msg);
 
     if (result.has_value()) {
-        std::cerr << "Unexpectedly encoded invalid message\n";
+        cerr << "Unexpectedly encoded invalid message\n";
         assert(false && "Expected encode() to return an error");
     }
 }
 
-void appendU16(Bytes& bytes, std::uint16_t value) {
-    bytes.push_back(static_cast<std::uint8_t>(value >> 8));
-    bytes.push_back(static_cast<std::uint8_t>(value));
+void appendU16(Bytes& bytes, uint16_t value) {
+    bytes.push_back(static_cast<uint8_t>(value >> 8));
+    bytes.push_back(static_cast<uint8_t>(value));
 }
 
-Bytes makeBody(std::uint16_t type, std::uint8_t bitmap) {
+Bytes makeBody(uint16_t type, uint8_t bitmap) {
     Bytes body;
     appendU16(body, type);
     body.push_back(bitmap);
@@ -423,13 +423,13 @@ void testInvalidVariableLengthFields() {
     // Key longer than 64 bytes.
     Message longKey;
     longKey.type = 0x0100;
-    longKey.key = std::string(65, 'K');
+    longKey.key = string(65, 'K');
     expectEncodeError(longKey);
 
     // Terminal ID longer than 16 bytes.
     Message longTerminal;
     longTerminal.type = 0x0100;
-    longTerminal.terminalId = std::string(17, 'T');
+    longTerminal.terminalId = string(17, 'T');
     expectEncodeError(longTerminal);
 
     // Key length says 5 bytes, but only 2 are present.
@@ -498,7 +498,7 @@ void testTruncateValidMessageAtEveryPosition() {
 
     const Bytes& validBody = *encoded;
 
-    for (std::size_t length = 0; length < validBody.size(); ++length) {
+    for (size_t length = 0; length < validBody.size(); ++length) {
         Bytes truncated(
             validBody.begin(),
             validBody.begin() + length
@@ -529,7 +529,7 @@ int main() {
     testRoundTripOneField();
     testRoundTripAllMessageTypes();
     testRoundTripAmountScales();
-    std::cout << "All round trip tests have passed\n";
+    cout << "All round trip tests have passed\n";
 
     testCardNumberBoundaries();
     testAmountBoundaries();
@@ -540,17 +540,17 @@ int main() {
     testAllValidResponseCodes();
     testTerminalIdBoundaries();
     testMinimumAndMaximumBodySizes();
-    std::cout << "All valid boundary value tests have passed\n";
+    cout << "All valid boundary value tests have passed\n";
 
     testInvalidBodyStructure();
     testInvalidCardNumber();
     testInvalidAmount();
     testInvalidVariableLengthFields();
     testInvalidFixedLengthFields();
-    std::cout << "All malformed-input tests have passed\n";
+    cout << "All malformed-input tests have passed\n";
 
     testTruncateValidMessageAtEveryPosition();
     testAllBitmapBitsSetWithoutPayload();
-    std::cout << "All tests have passed\n";
+    cout << "All tests have passed\n";
     return 0;
 }
