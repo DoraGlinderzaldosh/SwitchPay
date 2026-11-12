@@ -13,6 +13,7 @@ class FrameBuffer {
     FrameResult next();
 
     bool failed() const;
+    bool hasPendingData() const;
 
     private:
     Bytes buffer__;

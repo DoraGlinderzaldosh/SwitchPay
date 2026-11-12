@@ -68,3 +68,7 @@ FrameResult FrameBuffer::next() {
 
     return std::optional<Bytes>{std::move(frame)};
 }
+
+bool FrameBuffer::hasPendingData() const {
+    return readPos < buffer__.size();
+}
