@@ -3,7 +3,7 @@
 
 std::expected<void, std::string> writeAll(int fd, const Bytes& bytes);
 
-//just ads 2 byte length prefix
+//just adds 2 byte length prefix
 //may be redundant
 std::expected<void, std::string> writeFrame(int fd, const Bytes& body);
 
