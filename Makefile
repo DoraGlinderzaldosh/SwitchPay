@@ -1,3 +1,4 @@
+
 CXX := g++
 CXXFLAGS := -std=c++23 -Wall -Wextra -Werror -g -O1
 RELEASE_FLAGS := -std=c++23 -Wall -Wextra -O2
@@ -8,9 +9,9 @@ BUILD_DIR := build
 COMMON_DIR := common
 TEST_DIR := tests
 
-.PHONY: all debug release tsan test test-codec test-frame-buffer clean
+.PHONY: all debug release tsan issuer test test-codec test-frame-buffer clean
 
-all: debug
+all: debug issuer
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -22,6 +23,21 @@ $(BUILD_DIR)/release: $(COMMON_DIR)/main.cpp | $(BUILD_DIR)
 
 $(BUILD_DIR)/tsan: $(COMMON_DIR)/main.cpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(TSAN_FLAGS) $< -o $@
+
+$(BUILD_DIR)/issuer: issuer/main.cpp \
+                     $(COMMON_DIR)/socket_utils.cpp \
+                     $(COMMON_DIR)/frame_buffer.cpp \
+                     $(COMMON_DIR)/codec.cpp \
+                     $(COMMON_DIR)/socket_utils.hpp \
+                     $(COMMON_DIR)/frame_buffer.hpp \
+                     $(COMMON_DIR)/codec.hpp \
+                     $(COMMON_DIR)/message.hpp | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -I$(COMMON_DIR) \
+		issuer/main.cpp \
+		$(COMMON_DIR)/socket_utils.cpp \
+		$(COMMON_DIR)/frame_buffer.cpp \
+		$(COMMON_DIR)/codec.cpp \
+		-o $@
 
 $(BUILD_DIR)/codec_test: $(TEST_DIR)/codec_test.cpp \
                          $(COMMON_DIR)/codec.cpp \
@@ -42,6 +58,8 @@ debug: test
 release: $(BUILD_DIR)/release
 
 tsan: $(BUILD_DIR)/tsan
+
+issuer: $(BUILD_DIR)/issuer
 
 test: test-codec test-frame-buffer
 

@@ -127,4 +127,5 @@ If a frame is invalid, **close the connection**. It cannot be resynchronized.
 
 - **Tampering:** what if someone modifies the frame (e.g. swaps in a different PAN)? Needs integrity protection (e.g. a MAC or TLS).
 - Idempotency handling: storage, expiry, and what to return on a duplicate key.
-- IWhich fields are required for which requests ?
+- Which fields are required for which requests ?
+- In common/socket_utils.cpp...helper function needed

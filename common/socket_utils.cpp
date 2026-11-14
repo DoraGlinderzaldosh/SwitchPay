@@ -1,4 +1,4 @@
-#include <socket_utils.hpp>
+#include "socket_utils.hpp"
 
 #include <sys/socket.h>
 #include <cerrno>
@@ -37,7 +37,7 @@ expected<void, string> writeFrame (int fd, const Bytes& body) {
     //again may be redundant 
     //create a helper function for this and use that here and multiple other places
     frame.reserve(body.size()+2);
-    frame.push_back(static_cast<uint16_t>(length>>8));
+    frame.push_back(static_cast<uint8_t>(length>>8));
     frame.push_back(static_cast<uint8_t>(length&0xFF));
 
     frame.insert(frame.end(), body.begin(), body.end());

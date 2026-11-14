@@ -5,6 +5,8 @@
 #include <optional>
 #include <string>
 
+using namespace std;
+
 struct Message {
     uint16_t type{};
 
